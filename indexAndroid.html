@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Transcriptor con Undo/Redo y Edición en Vivo</title>
+  <title>Jacobs Transcriptor</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
@@ -37,7 +37,6 @@
       color: var(--color-accent);
       text-shadow:1px 1px 2px black;
     }
-
     .main-content {
       flex:1; display:flex; flex-direction:column;
       overflow:auto; padding:20px;
@@ -65,7 +64,6 @@
       transform: translateY(-1px);
       box-shadow:0 0 6px var(--color-accent);
     }
-
     .recording-indicator {
       display:inline-block;
       width:10px; height:10px;
@@ -79,7 +77,6 @@
       0%,100% {opacity:1;}
       50% {opacity:0;}
     }
-
     label {
       color: var(--color-accent);
       font-weight:bold;
@@ -98,7 +95,6 @@
       margin-bottom:10px;
       overflow-y:auto;
     }
-
     .countdown-overlay {
       position:fixed; top:0; left:0; right:0; bottom:0;
       background: rgba(0,0,0,0.8);
@@ -111,7 +107,7 @@
 </head>
 <body>
   <header>
-    <h1>Transcriptor Mejorado (Voz)</h1>
+    <h1>Jacobs Transcriptor</h1>
   </header>
 
   <div class="main-content">
@@ -123,7 +119,6 @@
 
     <div>
       <label>Transcripción (Español)</label>
-      <!-- contenteditable=true para permitir correcciones en vivo -->
       <div id="transcriptionES" class="transcription-area" contenteditable="true"></div>
     </div>
 
@@ -134,6 +129,7 @@
 
     <div class="controls">
       <button id="resetBtn" disabled>Reiniciar (Borrar todo)</button>
+      <button id="minutaBtn" disabled>Reunudar Minuta</button>
       <button id="undoBtn" disabled>Deshacer última frase</button>
       <button id="redoBtn" disabled>Rehacer</button>
       <button id="highlightBtn" disabled>Resaltar</button>
@@ -178,7 +174,6 @@
       });
     }
 
-    // Export a string as a text file
     function downloadFile(filename, content, mimeType="text/plain") {
       const blob = new Blob([content], { type: mimeType });
       const url = URL.createObjectURL(blob);
@@ -255,18 +250,20 @@
     let recognition = null;
     let isRecording = false;
     let finalTranscriptES = ""; 
-    // Historial de "frases" finales para Undo/Redo
     let transcriptHistory = [];
-    // Pila para "Redo"
     let redoStack = [];
 
-    // Variables de referencia a elementos
+    // Variables para evitar duplicados y detectar pausas prolongadas
+    let lastFinal = "";
+    let prevFinalTime = 0;
+
     const startBtn = document.getElementById("startBtn");
     const stopBtn = document.getElementById("stopBtn");
     const micIndicator = document.getElementById("micIndicator");
     const transcriptionES = document.getElementById("transcriptionES");
     const transcriptionEN = document.getElementById("transcriptionEN");
     const resetBtn = document.getElementById("resetBtn");
+    const minutaBtn = document.getElementById("minutaBtn");
     const undoBtn = document.getElementById("undoBtn");
     const redoBtn = document.getElementById("redoBtn");
     const highlightBtn = document.getElementById("highlightBtn");
@@ -274,10 +271,6 @@
     const exportTxt = document.getElementById("exportTxt");
     const exportJson = document.getElementById("exportJson");
 
-    // Para evitar duplicados de la misma frase final
-    let lastFinal = ""; // guardamos la última frase final reconocida
-
-    // Al iniciar la app, habilitamos reconocimiento si existe
     if("webkitSpeechRecognition" in window){
       recognition = new webkitSpeechRecognition();
       recognition.continuous = true;
@@ -289,36 +282,35 @@
         for(let i = e.resultIndex; i < e.results.length; i++){
           if(e.results[i].isFinal){
             let phrase = e.results[i][0].transcript.trim();
-            // Evitamos duplicar la misma frase final
-            if(phrase && phrase !== lastFinal){
-              lastFinal = phrase;
-              transcriptHistory.push(phrase); // guardamos en historial
-              // Borramos la pila de redo (al agregar nueva frase)
-              redoStack = [];
-              updateUndoRedoButtons();
+            let currentTime = new Date().getTime();
+            // Evitar duplicados si el mismo fragmento se detecta en menos de 1 segundo
+            if(phrase && phrase === lastFinal && (currentTime - prevFinalTime) < 1000) {
+              continue;
+            }
+            // Insertar salto de línea si hay una pausa prolongada (>2s)
+            if(prevFinalTime !== 0 && (currentTime - prevFinalTime) > 2000) {
+              transcriptionES.innerHTML += "<br>";
+              finalTranscriptES += "\n";
+            }
+            lastFinal = phrase;
+            prevFinalTime = currentTime;
+            transcriptHistory.push(phrase);
+            redoStack = [];
+            updateUndoRedoButtons();
 
-              finalTranscriptES += phrase + " ";
-              // Reemplazamos el contenido del div con lo que ya tenía + la frase
-              // Pero, como contenteditable, debemos concatenar
-              transcriptionES.innerHTML = transcriptionES.innerHTML + phrase + " ";
-              // Traducimos con Argos
-              try{
-                const plainAll = transcriptionES.innerText.trim();
-                const translated = await translateTextWithWorker(plainAll, "es", "en");
-                transcriptionEN.value = translated;
-              } catch(err){
-                logError("[Translation Error] " + err.message);
-              }
+            finalTranscriptES += phrase + " ";
+            transcriptionES.innerHTML += phrase + " ";
+            try{
+              const plainAll = transcriptionES.innerText.trim();
+              const translated = await translateTextWithWorker(plainAll, "es", "en");
+              transcriptionEN.value = translated;
+            } catch(err){
+              logError("[Translation Error] " + err.message);
             }
           } else {
-            // Parte intermedia
             interimTranscript += e.results[i][0].transcript;
           }
         }
-        // O puedes mostrar interim en algún color, 
-        // pero como estamos usando contenteditable, podríamos no sobreescribir 
-        // para que el usuario no se confunda.
-
       };
 
       recognition.onerror = function(event){
@@ -327,7 +319,6 @@
 
       recognition.onend = function(){
         if(isRecording){
-          // reinicia si deseas grabar continuous
           recognition.start();
         }
       };
@@ -342,9 +333,9 @@
       if(!recognition) return;
       await showCountdown(3);
       
-      // Limpieza previa
       finalTranscriptES = "";
       lastFinal = "";
+      prevFinalTime = 0;
       transcriptHistory = [];
       redoStack = [];
       updateUndoRedoButtons();
@@ -354,6 +345,7 @@
       startBtn.disabled = true;
       stopBtn.disabled = false;
       resetBtn.disabled = false;
+      minutaBtn.disabled = false;
       micIndicator.style.display = "inline-block";
 
       exportTxt.disabled = true;
@@ -368,68 +360,73 @@
       micIndicator.style.display = "none";
       startBtn.disabled = false;
       stopBtn.disabled = true;
-      // Habilitamos export y highlight
       exportTxt.disabled = false;
       exportJson.disabled = false;
       highlightBtn.disabled = false;
     });
 
-    // Reset total
+    // Botón de reinicio (reset) con una sola confirmación
     resetBtn.addEventListener("click", ()=>{
       if(!confirm("¿Seguro que deseas borrar todo?")) return;
       finalTranscriptES = "";
       transcriptHistory = [];
       redoStack = [];
       lastFinal = "";
+      prevFinalTime = 0;
       transcriptionES.innerHTML = "";
       transcriptionEN.value = "";
       summaryArea.value = "";
       updateUndoRedoButtons();
     });
 
-    // Undo
-    undoBtn.addEventListener("click", ()=>{
-      if(transcriptHistory.length<1) return;
-      // Sacamos la última frase
-      const undone = transcriptHistory.pop();
-      // la metemos en la pila redo
-      redoStack.push(undone);
+    // Botón "Reunudar Minuta" con doble confirmación
+    minutaBtn.addEventListener("click", ()=>{
+      if(!confirm("¿Seguro que deseas borrar todo?")) return;
+      if(!confirm("Esta acción borrará todo, ¿estás completamente seguro?")) return;
+      finalTranscriptES = "";
+      transcriptHistory = [];
+      redoStack = [];
+      lastFinal = "";
+      prevFinalTime = 0;
+      transcriptionES.innerHTML = "";
+      transcriptionEN.value = "";
+      summaryArea.value = "";
+      updateUndoRedoButtons();
+    });
 
-      // quitamos undone de transcriptionES
-      // la forma simple: regenerar a partir de transcriptHistory
+    undoBtn.addEventListener("click", ()=>{
+      if(transcriptHistory.length < 1) return;
+      const undone = transcriptHistory.pop();
+      redoStack.push(undone);
       reconstructES();
       updateUndoRedoButtons();
-      // re-traducimos
       retranslateAll();
     });
 
-    // Redo
     redoBtn.addEventListener("click", ()=>{
-      if(redoStack.length<1) return;
+      if(redoStack.length < 1) return;
       const phrase = redoStack.pop();
       transcriptHistory.push(phrase);
-
       reconstructES();
       updateUndoRedoButtons();
       retranslateAll();
     });
 
     function reconstructES(){
-      // regeneramos finalTranscriptES concatenando
       let joined = transcriptHistory.join(" ") + " ";
       finalTranscriptES = joined;
       transcriptionES.innerHTML = joined;
     }
 
     function updateUndoRedoButtons(){
-      undoBtn.disabled = (transcriptHistory.length<1);
-      redoBtn.disabled = (redoStack.length<1);
+      undoBtn.disabled = (transcriptHistory.length < 1);
+      redoBtn.disabled = (redoStack.length < 1);
     }
 
     async function retranslateAll(){
       const plainAll = transcriptionES.innerText.trim();
       if(!plainAll) {
-        transcriptionEN.value="";
+        transcriptionEN.value = "";
         return;
       }
       try{
@@ -440,17 +437,16 @@
       }
     }
 
-    // Resaltar (para generar resumen)
     highlightBtn.addEventListener("click", ()=>{
-      const sel=window.getSelection();
+      const sel = window.getSelection();
       if(sel.rangeCount){
-        for(let i=0;i<sel.rangeCount;i++){
+        for(let i = 0; i < sel.rangeCount; i++){
           const range = sel.getRangeAt(i).cloneRange();
           const text = range.toString();
           if(text.trim()){
             const span = document.createElement("span");
-            span.style.backgroundColor="var(--color-accent)";
-            span.style.color="#000";
+            span.style.backgroundColor = "var(--color-accent)";
+            span.style.color = "#000";
             span.appendChild(range.extractContents());
             range.insertNode(span);
           }
@@ -460,16 +456,14 @@
     });
 
     function updateSummary(){
-      // Buscamos todos los spans resaltados
       const spans = transcriptionES.querySelectorAll('span[style*="background-color"]');
-      let lines=[];
+      let lines = [];
       spans.forEach(s=>{
         lines.push(s.innerText.trim());
       });
       summaryArea.value = lines.join("\n");
     }
 
-    // Exportar a TXT
     exportTxt.addEventListener("click", ()=>{
       const es = transcriptionES.innerText;
       const en = transcriptionEN.value;
@@ -481,18 +475,18 @@
       const combined = `Español:\n${es}\n\nInglés:\n${en}\n\nResumen:\n${summary}`;
       downloadFile("transcripcion_voz.txt", combined, "text/plain");
     });
-    // Exportar a JSON
+
     exportJson.addEventListener("click", ()=>{
-      const data={
+      const data = {
         voice:{
           es: transcriptionES.innerText,
           en: transcriptionEN.value,
           summary: summaryArea.value,
-          history: transcriptHistory, 
+          history: transcriptHistory,
           undone: redoStack
         }
       };
-      downloadFile("transcripcion_voz.json", JSON.stringify(data,null,2), "application/json");
+      downloadFile("transcripcion_voz.json", JSON.stringify(data, null, 2), "application/json");
     });
 
   </script>
