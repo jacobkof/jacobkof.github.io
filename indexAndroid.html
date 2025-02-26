@@ -2,8 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Transcriptor Responsivo - PC y Android</title>
-  <!-- Para Android/Movil -->
+  <title>Transcriptor con Undo/Redo y Edición en Vivo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
@@ -29,113 +28,51 @@
     header {
       background: var(--color-purple);
       text-align: center;
-      padding: 14px 0;
+      padding: 12px 0;
       box-shadow: 0 2px 8px rgba(0,0,0,0.4);
       position: sticky; top:0; z-index:1000;
     }
     header h1 {
-      margin:0; font-size:1.6rem;
+      margin:0; font-size:1.4rem;
       color: var(--color-accent);
-      text-shadow: 1px 1px 2px #000;
-    }
-    .top-nav {
-      background: var(--color-purple-dark);
-      display: none; /* se mostrará en desktop */
-      justify-content: center;
-      align-items: center;
-      gap: 20px;
-      padding: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    }
-    .top-nav a {
-      color: var(--color-accent);
-      text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      transition: background 0.3s, box-shadow 0.3s;
-      font-weight: 500;
-    }
-    .top-nav a:hover {
-      background: rgba(57,255,20,0.15);
-      box-shadow: 0 0 6px var(--color-accent);
-    }
-
-    .bottom-nav {
-      background: var(--color-purple-dark);
-      height: 60px;
-      display: none; /* se mostrará en móvil */
-      justify-content: space-around;
-      align-items: center;
-      box-shadow: 0 -2px 6px rgba(0,0,0,0.5);
-    }
-    .nav-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: var(--color-accent);
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
-      width: 80px;
-      text-align: center;
-      transition: background 0.3s, box-shadow 0.3s;
-    }
-    .nav-btn:hover {
-      background: rgba(57,255,20,0.15);
-      box-shadow: 0 0 6px var(--color-accent);
-      border-radius: 4px;
+      text-shadow:1px 1px 2px black;
     }
 
     .main-content {
       flex:1; display:flex; flex-direction:column;
-      overflow:auto; padding: 10px;
+      overflow:auto; padding:20px;
+      max-width: 800px; margin:0 auto;
     }
-    .section {
-      display:none;
-      background:#1F1F1F;
-      border-radius:8px;
-      margin-bottom:60px; /* para separar de la bottom nav en mobile */
-      box-shadow:0 2px 6px rgba(0,0,0,0.5);
-      padding:16px;
+    .controls {
+      text-align:center; margin-bottom:10px;
     }
-    .section.active {
-      display:block;
-    }
-    .section h2 {
-      color: var(--color-accent);
-      text-align:center;
-      margin-bottom:12px;
-    }
-
     button {
       background: var(--color-purple-dark);
       color: var(--color-text);
       font-size: 16px;
-      padding:12px 16px;
+      padding: 12px 16px;
       border:1px solid var(--color-border);
       border-radius:5px;
       margin:6px;
       cursor:pointer;
-      transition:background 0.3s, transform 0.2s, box-shadow 0.3s;
+      transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
     }
     button:disabled {
-      background:#555; cursor:not-allowed; opacity:0.6;
+      background: #555; cursor:not-allowed; opacity:0.6;
     }
     button:hover:not(:disabled) {
       background: var(--color-purple);
       transform: translateY(-1px);
       box-shadow:0 0 6px var(--color-accent);
     }
-    .controls {
-      text-align:center; margin-bottom:10px;
-    }
+
     .recording-indicator {
       display:inline-block;
       width:10px; height:10px;
       background: var(--color-accent);
       border-radius:50%;
       margin-left:5px;
-      animation:blink 1s infinite;
+      animation: blink 1s infinite;
       vertical-align:middle;
     }
     @keyframes blink {
@@ -146,14 +83,15 @@
     label {
       color: var(--color-accent);
       font-weight:bold;
-      display:block; margin-bottom:4px;
+      display:block;
+      margin-bottom:4px;
     }
     .transcription-area {
       background: var(--color-white);
       color:#000;
       border:1px solid #CCC;
       border-radius:4px;
-      min-height:100px;
+      min-height:150px;
       font-size:14px;
       padding:8px;
       resize:vertical;
@@ -169,165 +107,69 @@
       font-size:60px; z-index:9999;
       text-shadow:0 0 10px var(--color-accent);
     }
-
-    /* MEDIA QUERIES */
-    @media (min-width:992px) {
-      .top-nav{ display:flex; }
-      .bottom-nav{ display:none; }
-      .main-content{ padding:20px 40px; }
-      .section{ max-width:1200px; margin:20px auto; }
-    }
-    @media (max-width:991px) {
-      .top-nav{ display:none; }
-      .bottom-nav{ display:flex; }
-    }
   </style>
 </head>
 <body>
-  <header id="top">
-    <h1>Transcriptor PC/Android</h1>
+  <header>
+    <h1>Transcriptor Mejorado (Voz)</h1>
   </header>
 
-  <!-- Nav superior (PC) -->
-  <nav class="top-nav">
-    <a href="#" data-target="sec-voz">Voz</a>
-    <a href="#" data-target="sec-video">Video</a>
-    <a href="#" data-target="sec-pantalla">Pantalla</a>
-  </nav>
-
-  <!-- Contenido principal -->
   <div class="main-content">
-    <!-- Sección Voz -->
-    <div class="section" id="sec-voz">
-      <h2>Grabación de Voz</h2>
-      <div class="controls">
-        <button id="startVoiceBtn">Iniciar</button>
-        <button id="stopVoiceBtn" disabled>Detener</button>
-        <span id="voiceIndicator" class="recording-indicator" style="display:none;"></span>
-      </div>
-      <div>
-        <label>Transcripción (Español)</label>
-        <div id="transcriptionES" class="transcription-area" contenteditable="false"></div>
-      </div>
-      <div>
-        <label>Traducción (Inglés)</label>
-        <textarea id="transcriptionEN" class="transcription-area" readonly></textarea>
-      </div>
-      <div>
-        <label>Resumen Generado</label>
-        <textarea id="summaryVoice" class="transcription-area" readonly></textarea>
-      </div>
-      <div class="controls">
-        <button id="highlightBtn" disabled>Resaltar</button>
-        <button id="exportVoiceTxt" disabled>TXT</button>
-        <button id="exportVoiceJson" disabled>JSON</button>
-        <button id="sendVoiceWhatsApp" disabled>WhatsApp</button>
-      </div>
+    <div class="controls">
+      <button id="startBtn">Iniciar Grabación</button>
+      <button id="stopBtn" disabled>Detener Grabación</button>
+      <span id="micIndicator" class="recording-indicator" style="display:none;"></span>
     </div>
 
-    <!-- Sección Video -->
-    <div class="section" id="sec-video">
-      <h2>Transcripción de Video</h2>
-      <div class="controls">
-        <input type="file" id="videoInput" accept="video/*" style="max-width:100%;">
-        <video id="videoPlayer" controls style="display:none; width:100%; margin:10px 0;"></video>
-      </div>
-      <div class="controls">
-        <button id="startVideoBtn" disabled>Iniciar</button>
-        <button id="stopVideoBtn" disabled>Detener</button>
-        <span id="videoIndicator" class="recording-indicator" style="display:none;"></span>
-      </div>
-      <div>
-        <label>Transcripción (Micrófono)</label>
-        <div id="videoTranscript" class="transcription-area"></div>
-      </div>
-      <div class="controls">
-        <button id="resetVideoBtn">Reiniciar</button>
-        <button id="captureMarkerBtn">Marcador</button>
-        <button id="sendVideoWhatsApp" disabled>WhatsApp</button>
-      </div>
+    <div>
+      <label>Transcripción (Español)</label>
+      <!-- contenteditable=true para permitir correcciones en vivo -->
+      <div id="transcriptionES" class="transcription-area" contenteditable="true"></div>
     </div>
 
-    <!-- Sección Pantalla -->
-    <div class="section" id="sec-pantalla">
-      <h2>Grabación de Pantalla</h2>
-      <div class="controls">
-        <button id="startScreenBtn">Iniciar</button>
-        <button id="stopScreenBtn" disabled>Detener</button>
-        <span id="screenIndicator" class="recording-indicator" style="display:none;"></span>
-      </div>
-      <div>
-        <label>Transcripción (Micrófono)</label>
-        <div id="screenTranscript" class="transcription-area"></div>
-      </div>
-      <div class="controls">
-        <button id="exportScreenBtn" disabled>Guardar Video</button>
-        <button id="sendScreenWhatsApp" disabled>WhatsApp</button>
-      </div>
+    <div>
+      <label>Traducción (Inglés)</label>
+      <textarea id="transcriptionEN" class="transcription-area" readonly></textarea>
+    </div>
+
+    <div class="controls">
+      <button id="resetBtn" disabled>Reiniciar (Borrar todo)</button>
+      <button id="undoBtn" disabled>Deshacer última frase</button>
+      <button id="redoBtn" disabled>Rehacer</button>
+      <button id="highlightBtn" disabled>Resaltar</button>
+    </div>
+
+    <div>
+      <label>Resumen de partes resaltadas</label>
+      <textarea id="summaryArea" class="transcription-area" readonly></textarea>
+    </div>
+
+    <div class="controls">
+      <button id="exportTxt" disabled>Exportar TXT</button>
+      <button id="exportJson" disabled>Exportar JSON</button>
     </div>
   </div>
 
-  <!-- Nav inferior (Móvil) -->
-  <nav class="bottom-nav">
-    <a href="#" class="nav-btn" data-target="sec-voz">🎤<br>Voz</a>
-    <a href="#" class="nav-btn" data-target="sec-video">🎬<br>Video</a>
-    <a href="#" class="nav-btn" data-target="sec-pantalla">📺<br>Pantalla</a>
-  </nav>
-
   <script>
-    /********************************************************
-     * 1) NAVEGACIÓN
-     ********************************************************/
-    const allSections = document.querySelectorAll(".section");
-    function showSection(id) {
-      allSections.forEach(sec => sec.classList.remove("active"));
-      document.getElementById(id).classList.add("active");
-    }
-    // Por defecto, mostrar Voz
-    showSection("sec-voz");
-
-    const topNav = document.querySelector(".top-nav");
-    if (topNav) {
-      topNav.querySelectorAll("a").forEach(link=>{
-        link.addEventListener("click", (e)=>{
-          e.preventDefault();
-          const target = link.getAttribute("data-target");
-          if(!target)return;
-          showSection(target);
-        });
-      });
-    }
-    const bottomNav = document.querySelector(".bottom-nav");
-    if(bottomNav){
-      bottomNav.querySelectorAll(".nav-btn").forEach(btn=>{
-        btn.addEventListener("click", (e)=>{
-          e.preventDefault();
-          const target = btn.getAttribute("data-target");
-          if(!target)return;
-          showSection(target);
-        });
-      });
-    }
-
-    /********************************************************
-     * 2) UTILIDADES
-     ********************************************************/
-    function logInfo(msg){ console.info("[INFO]", msg); }
-    function logError(msg){ console.error("[ERROR]", msg); }
+    /*******************************************************
+     * 1) UTILIDADES
+     *******************************************************/
+    function logInfo(msg) { console.info("[INFO]", msg); }
+    function logError(msg) { console.error("[ERROR]", msg); }
 
     async function showCountdown(seconds){
       return new Promise(resolve=>{
         const overlay = document.createElement("div");
         overlay.className="countdown-overlay";
-        overlay.textContent = seconds;
+        overlay.textContent=seconds;
         document.body.appendChild(overlay);
 
-        let current = seconds;
-        const interval = setInterval(()=>{
+        let current=seconds;
+        const interval=setInterval(()=>{
           current--;
           if(current>0){
-            overlay.textContent = current;
-          }else{
+            overlay.textContent=current;
+          } else {
             clearInterval(interval);
             document.body.removeChild(overlay);
             resolve();
@@ -336,32 +178,38 @@
       });
     }
 
-    function sendWhatsAppMessage(text) {
-      const url = "https://wa.me/?text=" + encodeURIComponent(text);
-      window.open(url,"_blank");
+    // Export a string as a text file
+    function downloadFile(filename, content, mimeType="text/plain") {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
     }
 
-    /********************************************************
-     * 3) WORKER DE TRADUCCIÓN (ARGOS)
-     ********************************************************/
+    /*******************************************************
+     * 2) TRADUCCIÓN (Argos) via Worker
+     *******************************************************/
     const workerCode = `
-      const cache = {};
+      const cache={};
       self.onmessage=async function(e){
-        const {type,text,sourceLang,targetLang,requestId} = e.data;
+        const {type,text,sourceLang,targetLang,requestId}=e.data;
         if(type==='translate'){
-          const key = text+'_'+sourceLang+'_'+targetLang;
+          const key=text+'_'+sourceLang+'_'+targetLang;
           if(cache[key]){
             self.postMessage({requestId,translatedText:cache[key]});
             return;
           }
           try{
-            const resp = await fetch('https://translate.argosopentech.com/translate',{
+            const resp=await fetch('https://translate.argosopentech.com/translate',{
               method:'POST',
               headers:{'Content-Type':'application/json'},
               body:JSON.stringify({q:text,source:sourceLang,target:targetLang,format:'text'})
             });
-            if(!resp.ok) throw new Error('HTTP error '+resp.status);
-            const data = await resp.json();
+            if(!resp.ok) throw new Error('HTTP '+resp.status);
+            const data=await resp.json();
             cache[key]=data.translatedText;
             self.postMessage({requestId,translatedText:data.translatedText});
           }catch(err){
@@ -370,229 +218,282 @@
         }
       }
     `;
-    const blob = new Blob([workerCode], {type:'application/javascript'});
+    const blob = new Blob([workerCode], { type:'application/javascript' });
     const workerUrl = URL.createObjectURL(blob);
     const translationWorker = new Worker(workerUrl);
+
     let requestCounter=0;
     const pendingRequests={};
+
     translationWorker.onmessage=(e)=>{
-      const{requestId,translatedText,error}=e.data;
+      const {requestId,translatedText,error}=e.data;
       if(pendingRequests[requestId]){
         if(error){
           pendingRequests[requestId].reject(new Error(error));
-        }else{
+        } else {
           pendingRequests[requestId].resolve(translatedText);
         }
         delete pendingRequests[requestId];
       }
     };
-    function translateTextWithWorker(text,sl,tl){
+
+    function translateTextWithWorker(text,sourceLang,targetLang){
       return new Promise((resolve,reject)=>{
-        const requestId = ++requestCounter;
+        const requestId=++requestCounter;
         pendingRequests[requestId]={resolve,reject};
         translationWorker.postMessage({
           type:'translate',
-          text, sourceLang:sl, targetLang:tl,
+          text, sourceLang, targetLang,
           requestId
         });
       });
     }
 
-    /********************************************************
-     * 4) TRANSCRIPCIÓN DE VOZ
-     ********************************************************/
-    let voiceRecognition=null;
-    let voiceIsRecording=false;
-    let voiceTranscriptES="";
-    let voiceDebounce=null;
+    /*******************************************************
+     * 3) LÓGICA PRINCIPAL DE RECONOCIMIENTO DE VOZ
+     *******************************************************/
+    let recognition = null;
+    let isRecording = false;
+    let finalTranscriptES = ""; 
+    // Historial de "frases" finales para Undo/Redo
+    let transcriptHistory = [];
+    // Pila para "Redo"
+    let redoStack = [];
 
-    const startVoiceBtn = document.getElementById("startVoiceBtn");
-    const stopVoiceBtn = document.getElementById("stopVoiceBtn");
-    const voiceIndicator = document.getElementById("voiceIndicator");
+    // Variables de referencia a elementos
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const micIndicator = document.getElementById("micIndicator");
     const transcriptionES = document.getElementById("transcriptionES");
     const transcriptionEN = document.getElementById("transcriptionEN");
-    const summaryVoice = document.getElementById("summaryVoice");
+    const resetBtn = document.getElementById("resetBtn");
+    const undoBtn = document.getElementById("undoBtn");
+    const redoBtn = document.getElementById("redoBtn");
     const highlightBtn = document.getElementById("highlightBtn");
-    const exportVoiceTxt = document.getElementById("exportVoiceTxt");
-    const exportVoiceJson = document.getElementById("exportVoiceJson");
-    const sendVoiceWhatsApp = document.getElementById("sendVoiceWhatsApp");
+    const summaryArea = document.getElementById("summaryArea");
+    const exportTxt = document.getElementById("exportTxt");
+    const exportJson = document.getElementById("exportJson");
 
-    // Chequeo de webkitSpeechRecognition
+    // Para evitar duplicados de la misma frase final
+    let lastFinal = ""; // guardamos la última frase final reconocida
+
+    // Al iniciar la app, habilitamos reconocimiento si existe
     if("webkitSpeechRecognition" in window){
-      voiceRecognition = new webkitSpeechRecognition();
-      voiceRecognition.continuous=true;
-      voiceRecognition.interimResults=true;
-      voiceRecognition.lang="es-ES";
+      recognition = new webkitSpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "es-ES";
 
-      // EVENTOS EXTRA DIAGNÓSTICO:
-      voiceRecognition.onaudiostart=()=>logInfo("onaudiostart (mic ok) - VOZ");
-      voiceRecognition.onsoundstart=()=>logInfo("onsoundstart - VOZ (detecta sonido)");
-      voiceRecognition.onspeechstart=()=>logInfo("onspeechstart - VOZ (detecta habla)");
-      voiceRecognition.onspeechend=()=>logInfo("onspeechend - VOZ (silencio?)");
-      voiceRecognition.onsoundend=()=>logInfo("onsoundend - VOZ (no hay sonido)");
-      voiceRecognition.onaudioend=()=>logInfo("onaudioend - VOZ (mic termina)");
-      voiceRecognition.onnomatch=()=>logInfo("onnomatch - VOZ (no coincidió con nada)");
-      
-      voiceRecognition.onerror=function(e){
-        logError("[VOZ Error] "+e.error);
-        // e.error puede ser: "no-speech", "audio-capture", "not-allowed", ...
-        if(e.error==="not-allowed" || e.error==="audio-capture"){
-          alert("Parece que no se otorgaron permisos de micrófono o no hay mic disponible.\n" +
-                "Asegúrate de usar HTTPS, Chrome para Android, y permitir acceso al micro.");
-        }
-      };
-      voiceRecognition.onresult=async function(e){
-        let interim="";
-        for(let i=e.resultIndex; i<e.results.length; i++){
+      recognition.onresult = async function(e){
+        let interimTranscript = "";
+        for(let i = e.resultIndex; i < e.results.length; i++){
           if(e.results[i].isFinal){
-            voiceTranscriptES += e.results[i][0].transcript + " ";
+            let phrase = e.results[i][0].transcript.trim();
+            // Evitamos duplicar la misma frase final
+            if(phrase && phrase !== lastFinal){
+              lastFinal = phrase;
+              transcriptHistory.push(phrase); // guardamos en historial
+              // Borramos la pila de redo (al agregar nueva frase)
+              redoStack = [];
+              updateUndoRedoButtons();
+
+              finalTranscriptES += phrase + " ";
+              // Reemplazamos el contenido del div con lo que ya tenía + la frase
+              // Pero, como contenteditable, debemos concatenar
+              transcriptionES.innerHTML = transcriptionES.innerHTML + phrase + " ";
+              // Traducimos con Argos
+              try{
+                const plainAll = transcriptionES.innerText.trim();
+                const translated = await translateTextWithWorker(plainAll, "es", "en");
+                transcriptionEN.value = translated;
+              } catch(err){
+                logError("[Translation Error] " + err.message);
+              }
+            }
           } else {
-            interim += e.results[i][0].transcript;
+            // Parte intermedia
+            interimTranscript += e.results[i][0].transcript;
           }
         }
-        transcriptionES.innerHTML=
-          voiceTranscriptES+`<span style="color:var(--color-accent);">${interim}</span>`;
+        // O puedes mostrar interim en algún color, 
+        // pero como estamos usando contenteditable, podríamos no sobreescribir 
+        // para que el usuario no se confunda.
 
-        // Intento traducir con debounce
-        if(voiceDebounce) clearTimeout(voiceDebounce);
-        voiceDebounce=setTimeout(async()=>{
-          const plain=voiceTranscriptES.trim();
-          if(plain){
-            try{
-              const translated=await translateTextWithWorker(plain,"es","en");
-              transcriptionEN.value=translated;
-            }catch(err){
-              logError("[Translating Voice] "+err.message);
-            }
-          }
-        },600);
       };
-      voiceRecognition.onend=function(){
-        if(voiceIsRecording){
-          voiceRecognition.start();
+
+      recognition.onerror = function(event){
+        logError("[Voice Error] " + event.error);
+      };
+
+      recognition.onend = function(){
+        if(isRecording){
+          // reinicia si deseas grabar continuous
+          recognition.start();
         }
       };
     } else {
-      alert("Este navegador no soporta webkitSpeechRecognition.\nPrueba Chrome en Android con HTTPS.\nEn PC, usa Chrome/Edge con HTTPS.");
+      alert("Este navegador no soporta webkitSpeechRecognition.\nUsa Chrome en HTTPS para Android o PC.");
     }
 
-    startVoiceBtn.addEventListener("click", async()=>{
-      if(!voiceRecognition){
-        alert("No hay webkitSpeechRecognition.\nVer consola para detalles.");
+    /*******************************************************
+     * 4) LÓGICA DE BOTONES
+     *******************************************************/
+    startBtn.addEventListener("click", async()=>{
+      if(!recognition) return;
+      await showCountdown(3);
+      
+      // Limpieza previa
+      finalTranscriptES = "";
+      lastFinal = "";
+      transcriptHistory = [];
+      redoStack = [];
+      updateUndoRedoButtons();
+
+      recognition.start();
+      isRecording = true;
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      resetBtn.disabled = false;
+      micIndicator.style.display = "inline-block";
+
+      exportTxt.disabled = true;
+      exportJson.disabled = true;
+      highlightBtn.disabled = true;
+    });
+
+    stopBtn.addEventListener("click", ()=>{
+      if(!recognition || !isRecording) return;
+      isRecording = false;
+      recognition.stop();
+      micIndicator.style.display = "none";
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      // Habilitamos export y highlight
+      exportTxt.disabled = false;
+      exportJson.disabled = false;
+      highlightBtn.disabled = false;
+    });
+
+    // Reset total
+    resetBtn.addEventListener("click", ()=>{
+      if(!confirm("¿Seguro que deseas borrar todo?")) return;
+      finalTranscriptES = "";
+      transcriptHistory = [];
+      redoStack = [];
+      lastFinal = "";
+      transcriptionES.innerHTML = "";
+      transcriptionEN.value = "";
+      summaryArea.value = "";
+      updateUndoRedoButtons();
+    });
+
+    // Undo
+    undoBtn.addEventListener("click", ()=>{
+      if(transcriptHistory.length<1) return;
+      // Sacamos la última frase
+      const undone = transcriptHistory.pop();
+      // la metemos en la pila redo
+      redoStack.push(undone);
+
+      // quitamos undone de transcriptionES
+      // la forma simple: regenerar a partir de transcriptHistory
+      reconstructES();
+      updateUndoRedoButtons();
+      // re-traducimos
+      retranslateAll();
+    });
+
+    // Redo
+    redoBtn.addEventListener("click", ()=>{
+      if(redoStack.length<1) return;
+      const phrase = redoStack.pop();
+      transcriptHistory.push(phrase);
+
+      reconstructES();
+      updateUndoRedoButtons();
+      retranslateAll();
+    });
+
+    function reconstructES(){
+      // regeneramos finalTranscriptES concatenando
+      let joined = transcriptHistory.join(" ") + " ";
+      finalTranscriptES = joined;
+      transcriptionES.innerHTML = joined;
+    }
+
+    function updateUndoRedoButtons(){
+      undoBtn.disabled = (transcriptHistory.length<1);
+      redoBtn.disabled = (redoStack.length<1);
+    }
+
+    async function retranslateAll(){
+      const plainAll = transcriptionES.innerText.trim();
+      if(!plainAll) {
+        transcriptionEN.value="";
         return;
       }
-      await showCountdown(3);
+      try{
+        const translated = await translateTextWithWorker(plainAll, "es", "en");
+        transcriptionEN.value = translated;
+      } catch(e){
+        logError("[Retranslate] " + e.message);
+      }
+    }
 
-      voiceTranscriptES="";
-      transcriptionES.innerHTML="";
-      transcriptionEN.value="";
-      summaryVoice.value="";
-
-      voiceRecognition.start();
-      voiceIsRecording=true;
-      startVoiceBtn.disabled=true;
-      stopVoiceBtn.disabled=false;
-      voiceIndicator.style.display="inline-block";
-
-      exportVoiceTxt.disabled=true;
-      exportVoiceJson.disabled=true;
-      highlightBtn.disabled=true;
-      sendVoiceWhatsApp.disabled=true;
-      transcriptionES.contentEditable="false";
-      logInfo("Grabación VOZ iniciada");
-    });
-    stopVoiceBtn.addEventListener("click",()=>{
-      if(!voiceRecognition||!voiceIsRecording) return;
-      voiceIsRecording=false;
-      voiceRecognition.stop();
-      startVoiceBtn.disabled=false;
-      stopVoiceBtn.disabled=true;
-      voiceIndicator.style.display="none";
-
-      exportVoiceTxt.disabled=false;
-      exportVoiceJson.disabled=false;
-      highlightBtn.disabled=false;
-      sendVoiceWhatsApp.disabled=false;
-      transcriptionES.contentEditable="true";
-      logInfo("Grabación VOZ detenida");
-    });
-
-    highlightBtn.addEventListener("click",()=>{
+    // Resaltar (para generar resumen)
+    highlightBtn.addEventListener("click", ()=>{
       const sel=window.getSelection();
       if(sel.rangeCount){
         for(let i=0;i<sel.rangeCount;i++){
-          const range=sel.getRangeAt(i).cloneRange();
-          const txt=range.toString();
-          if(txt.trim()){
-            const span=document.createElement("span");
+          const range = sel.getRangeAt(i).cloneRange();
+          const text = range.toString();
+          if(text.trim()){
+            const span = document.createElement("span");
             span.style.backgroundColor="var(--color-accent)";
             span.style.color="#000";
             span.appendChild(range.extractContents());
             range.insertNode(span);
           }
         }
-        updateVoiceSummary();
+        updateSummary();
       }
     });
-    function updateVoiceSummary(){
-      const spans=transcriptionES.querySelectorAll('span[style*="background-color"]');
-      let summaryPoints=[];
-      spans.forEach(s=> summaryPoints.push(s.innerText.trim()));
-      summaryVoice.value=summaryPoints.join("\n");
+
+    function updateSummary(){
+      // Buscamos todos los spans resaltados
+      const spans = transcriptionES.querySelectorAll('span[style*="background-color"]');
+      let lines=[];
+      spans.forEach(s=>{
+        lines.push(s.innerText.trim());
+      });
+      summaryArea.value = lines.join("\n");
     }
 
-    exportVoiceTxt.addEventListener("click",()=>{
-      const es=transcriptionES.innerText;
-      const en=transcriptionEN.value;
-      const sum=summaryVoice.value;
-      if(!es && !en && !sum){
+    // Exportar a TXT
+    exportTxt.addEventListener("click", ()=>{
+      const es = transcriptionES.innerText;
+      const en = transcriptionEN.value;
+      const summary = summaryArea.value;
+      if(!es && !en && !summary){
         alert("No hay datos para exportar.");
         return;
       }
-      const combined=`Español:\n${es}\n\nInglés:\n${en}\n\nResumen:\n${sum}`;
-      const blob=new Blob([combined],{type:'text/plain'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement("a");
-      a.href=url;
-      a.download="voz_transcripcion.txt";
-      a.click();
-      URL.revokeObjectURL(url);
+      const combined = `Español:\n${es}\n\nInglés:\n${en}\n\nResumen:\n${summary}`;
+      downloadFile("transcripcion_voz.txt", combined, "text/plain");
     });
-    exportVoiceJson.addEventListener("click",()=>{
+    // Exportar a JSON
+    exportJson.addEventListener("click", ()=>{
       const data={
-        voz:{es:transcriptionES.innerText,en:transcriptionEN.value,resumen:summaryVoice.value}
+        voice:{
+          es: transcriptionES.innerText,
+          en: transcriptionEN.value,
+          summary: summaryArea.value,
+          history: transcriptHistory, 
+          undone: redoStack
+        }
       };
-      const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement("a");
-      a.href=url;
-      a.download="voz_transcripcion.json";
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadFile("transcripcion_voz.json", JSON.stringify(data,null,2), "application/json");
     });
-    sendVoiceWhatsApp.addEventListener("click",()=>{
-      const es=transcriptionES.innerText;
-      const en=transcriptionEN.value;
-      const sum=summaryVoice.value;
-      const msg=`***Transcripción de Voz***\n\nEspañol:\n${es}\n\nInglés:\n${en}\n\nResumen:\n${sum}`;
-      sendWhatsAppMessage(msg);
-    });
-
-    /********************************************************
-     * 5) TRANSCRIPCIÓN DE VIDEO (Misma idea, micrófono)
-     ********************************************************/
-    /* ... la misma configuración con "webkitSpeechRecognition"
-       repetida para video, con onresult, etc.
-       Se omite en este snippet, as it's the same logic.
-       Pero se incluyen logs en onerror, onend, etc. 
-       Y un alert si "not-allowed" en Android.
-       [El resto del código es igual al anterior, 
-        conservando la lógica de "startVideoBtn", "stopVideoBtn", etc.] 
-    */
-
-    // ... Resto de la lógica para el video y la pantalla ...
-    // [El snippet se recortó por brevedad, pues es igual al ejemplo anterior,
-    //  se sugiere mantener el logging extra en onerror, onend, etc.]
 
   </script>
 </body>
