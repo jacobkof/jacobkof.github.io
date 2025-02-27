@@ -147,7 +147,7 @@
   </div>
 
   <script>
-    // Aseguramos la compatibilidad con SpeechRecognition
+    // Compatibilidad con SpeechRecognition
     window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!window.SpeechRecognition) {
       alert("Este navegador no soporta el reconocimiento de voz. Usa Chrome en HTTPS para Android o PC.");
@@ -258,6 +258,7 @@
     let transcriptHistory = [];
     let redoStack = [];
 
+    // Variables para evitar duplicados y detectar pausas prolongadas
     let lastFinal = "";
     let prevFinalTime = 0;
 
@@ -275,7 +276,7 @@
     const exportTxt = document.getElementById("exportTxt");
     const exportJson = document.getElementById("exportJson");
 
-    // Configuración para grabación continua
+    // Configuración de reconocimiento
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "es-ES";
@@ -290,8 +291,15 @@
         if (e.results[i].isFinal) {
           let phrase = e.results[i][0].transcript.trim();
           let currentTime = new Date().getTime();
-          if (phrase && phrase === lastFinal && (currentTime - prevFinalTime) < 1000) continue;
-          if (transcriptHistory.length > 0 && transcriptHistory[transcriptHistory.length - 1] === phrase) continue;
+          // Comprobación insensible a mayúsculas/minúsculas con la última frase reconocida
+          if (phrase && lastFinal && phrase.toLowerCase() === lastFinal.toLowerCase() && (currentTime - prevFinalTime) < 1000) {
+            continue;
+          }
+          // Si el último elemento del historial es igual (insensible a mayúsculas/minúsculas), se omite
+          if (transcriptHistory.length > 0 && transcriptHistory[transcriptHistory.length - 1].toLowerCase() === phrase.toLowerCase()) {
+            continue;
+          }
+          // Insertar salto de línea si hay una pausa prolongada (>2s)
           if (prevFinalTime !== 0 && (currentTime - prevFinalTime) > 2000) {
             transcriptionES.innerHTML += "<br>";
             finalTranscriptES += "\n";
@@ -321,7 +329,6 @@
       logError("[Voice Error] " + event.error);
     };
 
-    // En modo continuo, si se detiene por error, reiniciamos
     recognition.onend = function() {
       logInfo("Reconocimiento terminado");
       if (isRecording) {
