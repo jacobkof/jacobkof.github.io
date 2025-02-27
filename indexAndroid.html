@@ -287,6 +287,10 @@
             if(phrase && phrase === lastFinal && (currentTime - prevFinalTime) < 1000) {
               continue;
             }
+            // Validación extra: si la última frase registrada es igual, se omite
+            if(transcriptHistory.length > 0 && transcriptHistory[transcriptHistory.length - 1] === phrase) {
+              continue;
+            }
             // Insertar salto de línea si hay una pausa prolongada (>2s)
             if(prevFinalTime !== 0 && (currentTime - prevFinalTime) > 2000) {
               transcriptionES.innerHTML += "<br>";
@@ -317,11 +321,11 @@
         logError("[Voice Error] " + event.error);
       };
 
+      // Se elimina la reactivación automática para evitar sonidos repetitivos
       recognition.onend = function(){
-        if(isRecording){
-          recognition.start();
-        }
+        // No se reinicia automáticamente el reconocimiento
       };
+
     } else {
       alert("Este navegador no soporta webkitSpeechRecognition.\nUsa Chrome en HTTPS para Android o PC.");
     }
