@@ -273,7 +273,7 @@
 
     if("webkitSpeechRecognition" in window){
       recognition = new webkitSpeechRecognition();
-      // Se desactiva el modo continuo para que el micrófono se detenga tras finalizar el habla
+      // Se desactiva el modo continuo para que el micrófono se detenga al finalizar el habla
       recognition.continuous = false;
       recognition.interimResults = true;
       recognition.lang = "es-ES";
@@ -322,14 +322,19 @@
         logError("[Voice Error] " + event.error);
       };
 
-      // Al terminar de escuchar, se detiene el reconocimiento
+      // Al terminar de hablar, detener el reconocimiento y reactivar el botón de iniciar
       recognition.onspeechend = function(){
         recognition.stop();
       };
 
-      // No se reinicia automáticamente el reconocimiento en onend
       recognition.onend = function(){
-        // El usuario debe volver a pulsar "Iniciar Grabación" para reactivar
+        isRecording = false;
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        micIndicator.style.display = "none";
+        exportTxt.disabled = false;
+        exportJson.disabled = false;
+        highlightBtn.disabled = false;
       };
 
     } else {
