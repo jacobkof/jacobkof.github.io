@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Jacobs Transcriptor (Con Heurísticas Antiduplicación)</title>
+  <title>Jacobs Transcriptor (Revisión de últimas 3 palabras)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
@@ -96,7 +96,7 @@
 </head>
 <body>
   <header>
-    <h1>Jacobs Transcriptor (Con Heurísticas Antiduplicación)</h1>
+    <h1>Jacobs Transcriptor (Revisión de últimas 3 palabras)</h1>
   </header>
 
   <div class="main-content">
@@ -136,7 +136,9 @@
   </div>
 
   <script>
-    // 1) Compatibilidad con SpeechRecognition
+    /*******************************************************
+     * 1) Compatibilidad con SpeechRecognition
+     *******************************************************/
     window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!window.SpeechRecognition) {
       alert("Este navegador no soporta el reconocimiento de voz. Usa Chrome en HTTPS para Android o PC.");
@@ -163,11 +165,12 @@
     }
 
     /*******************************************************
-     * 3) UTILIDADES
+     * 3) Utilidades
      *******************************************************/
     function logInfo(msg) { console.info("[INFO]", msg); }
     function logError(msg) { console.error("[ERROR]", msg); }
 
+    // Muestra una cuenta regresiva visual de n segundos
     async function showCountdown(seconds) {
       return new Promise(resolve => {
         const overlay = document.createElement("div");
@@ -188,6 +191,7 @@
       });
     }
 
+    // Descarga un archivo de texto
     function downloadFile(filename, content, mimeType="text/plain") {
       const blob = new Blob([content], { type: mimeType });
       const url = URL.createObjectURL(blob);
@@ -259,7 +263,7 @@
     }
 
     /*******************************************************
-     * 5) RECONOCIMIENTO DE VOZ
+     * 5) LÓGICA PRINCIPAL DE RECONOCIMIENTO DE VOZ
      *******************************************************/
     let recognition = new SpeechRecognition();
     let isRecording = false;
@@ -267,12 +271,9 @@
     let transcriptHistory = [];
     let redoStack = [];
 
-    // Para evitar duplicados y repeticiones
+    // Variables para evitar duplicados y repeticiones
     let lastFinal = "";
     let prevFinalTime = 0;
-    // Almacena las últimas frases para omitir si se repite
-    const MAX_RECENT_PHRASES = 3;
-    let recentPhrases = [];
 
     // Referencias a elementos
     const startBtn = document.getElementById("startBtn");
@@ -289,7 +290,7 @@
     const exportTxt = document.getElementById("exportTxt");
     const exportJson = document.getElementById("exportJson");
 
-    // Configuración de reconocimiento continuo
+    // Configuración de reconocimiento
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "es-ES";
@@ -297,6 +298,20 @@
     recognition.onstart = function() {
       logInfo("Reconocimiento iniciado");
     };
+
+    // Obtiene las últimas N palabras del texto final
+    function getLastNWords(text, n=3) {
+      const words = text.trim().split(/\s+/);
+      if (words.length < n) return words.map(w => w.toLowerCase());
+      return words.slice(-n).map(w => w.toLowerCase());
+    }
+
+    // Obtiene las primeras N palabras de la frase reconocida
+    function getFirstNWords(phrase, n=3) {
+      const words = phrase.trim().split(/\s+/);
+      if (words.length < n) return words.map(w => w.toLowerCase());
+      return words.slice(0, n).map(w => w.toLowerCase());
+    }
 
     recognition.onresult = async function(e) {
       let interimTranscript = "";
@@ -306,26 +321,31 @@
           let currentTime = new Date().getTime();
           let normalizedPhrase = phrase.toLowerCase();
 
-          // 1) Evitar si finalTranscriptES ya termina con esa secuencia
+          // 1) Evitar si la transcripción final ya termina con la misma secuencia
           if (finalTranscriptES.trim().toLowerCase().endsWith(normalizedPhrase)) {
             console.log("Duplicado detectado (finalTranscriptES):", phrase);
             continue;
           }
+
           // 2) Evitar si el último del historial es igual
           if (transcriptHistory.length > 0 &&
               transcriptHistory[transcriptHistory.length - 1].trim().toLowerCase() === normalizedPhrase) {
             console.log("Duplicado detectado (historial):", phrase);
             continue;
           }
+
           // 3) Evitar si en menos de 1 segundo se repite la misma frase
           if (phrase && lastFinal && normalizedPhrase === lastFinal.toLowerCase() &&
               (currentTime - prevFinalTime) < 1000) {
             console.log("Saltando repetición en <1s:", phrase);
             continue;
           }
-          // 4) Evitar si la frase aparece en la lista de "frases recientes"
-          if (recentPhrases.includes(normalizedPhrase)) {
-            console.log("Saltando repetición (recentPhrases):", phrase);
+
+          // 4) Revisar últimas 3 palabras del texto vs. primeras 3 palabras de la nueva frase
+          const last3Words = getLastNWords(finalTranscriptES, 3).join(" ");
+          const first3New = getFirstNWords(phrase, 3).join(" ");
+          if (last3Words && last3Words === first3New) {
+            console.log("Coinciden últimas 3 palabras con las primeras 3 nuevas:", phrase);
             continue;
           }
 
@@ -347,12 +367,6 @@
 
           // Reproducir beep
           playBeep();
-
-          // Actualizar recentPhrases
-          recentPhrases.push(normalizedPhrase);
-          if (recentPhrases.length > MAX_RECENT_PHRASES) {
-            recentPhrases.shift(); // eliminar la más antigua
-          }
 
           // Traducir todo
           try {
@@ -399,8 +413,6 @@
       prevFinalTime = 0;
       transcriptHistory = [];
       redoStack = [];
-      recentPhrases = [];
-
       updateUndoRedoButtons();
 
       recognition.start();
@@ -434,7 +446,6 @@
       redoStack = [];
       lastFinal = "";
       prevFinalTime = 0;
-      recentPhrases = [];
       transcriptionES.innerHTML = "";
       transcriptionEN.value = "";
       summaryArea.value = "";
@@ -449,7 +460,6 @@
       redoStack = [];
       lastFinal = "";
       prevFinalTime = 0;
-      recentPhrases = [];
       transcriptionES.innerHTML = "";
       transcriptionEN.value = "";
       summaryArea.value = "";
