@@ -160,8 +160,8 @@
         overlay.textContent=seconds;
         document.body.appendChild(overlay);
 
-        let current=seconds;
-        const interval=setInterval(()=>{
+        let current = seconds;
+        const interval = setInterval(()=>{
           current--;
           if(current>0){
             overlay.textContent=current;
@@ -188,40 +188,40 @@
      * 2) TRADUCCIÓN (Argos) via Worker
      *******************************************************/
     const workerCode = `
-      const cache={};
-      self.onmessage=async function(e){
-        const {type,text,sourceLang,targetLang,requestId}=e.data;
-        if(type==='translate'){
-          const key=text+'_'+sourceLang+'_'+targetLang;
+      const cache = {};
+      self.onmessage = async function(e){
+        const {type, text, sourceLang, targetLang, requestId} = e.data;
+        if(type === 'translate'){
+          const key = text + '_' + sourceLang + '_' + targetLang;
           if(cache[key]){
-            self.postMessage({requestId,translatedText:cache[key]});
+            self.postMessage({requestId, translatedText: cache[key]});
             return;
           }
           try{
-            const resp=await fetch('https://translate.argosopentech.com/translate',{
-              method:'POST',
-              headers:{'Content-Type':'application/json'},
-              body:JSON.stringify({q:text,source:sourceLang,target:targetLang,format:'text'})
+            const resp = await fetch('https://translate.argosopentech.com/translate', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({q: text, source: sourceLang, target: targetLang, format: 'text'})
             });
-            if(!resp.ok) throw new Error('HTTP '+resp.status);
-            const data=await resp.json();
-            cache[key]=data.translatedText;
-            self.postMessage({requestId,translatedText:data.translatedText});
-          }catch(err){
-            self.postMessage({requestId,error:err.message});
+            if(!resp.ok) throw new Error('HTTP ' + resp.status);
+            const data = await resp.json();
+            cache[key] = data.translatedText;
+            self.postMessage({requestId, translatedText: data.translatedText});
+          } catch(err){
+            self.postMessage({requestId, error: err.message});
           }
         }
       }
     `;
-    const blob = new Blob([workerCode], { type:'application/javascript' });
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
     const workerUrl = URL.createObjectURL(blob);
     const translationWorker = new Worker(workerUrl);
 
-    let requestCounter=0;
-    const pendingRequests={};
+    let requestCounter = 0;
+    const pendingRequests = {};
 
-    translationWorker.onmessage=(e)=>{
-      const {requestId,translatedText,error}=e.data;
+    translationWorker.onmessage = (e) => {
+      const {requestId, translatedText, error} = e.data;
       if(pendingRequests[requestId]){
         if(error){
           pendingRequests[requestId].reject(new Error(error));
@@ -232,12 +232,12 @@
       }
     };
 
-    function translateTextWithWorker(text,sourceLang,targetLang){
-      return new Promise((resolve,reject)=>{
-        const requestId=++requestCounter;
-        pendingRequests[requestId]={resolve,reject};
+    function translateTextWithWorker(text, sourceLang, targetLang){
+      return new Promise((resolve, reject) => {
+        const requestId = ++requestCounter;
+        pendingRequests[requestId] = {resolve, reject};
         translationWorker.postMessage({
-          type:'translate',
+          type: 'translate',
           text, sourceLang, targetLang,
           requestId
         });
@@ -249,7 +249,7 @@
      *******************************************************/
     let recognition = null;
     let isRecording = false;
-    let finalTranscriptES = ""; 
+    let finalTranscriptES = "";
     let transcriptHistory = [];
     let redoStack = [];
 
@@ -273,8 +273,8 @@
 
     if("webkitSpeechRecognition" in window){
       recognition = new webkitSpeechRecognition();
-      // Se desactiva el modo continuo para que el micrófono se detenga al finalizar el habla
-      recognition.continuous = false;
+      // Se activa el modo continuo para que la grabación sea ininterrumpida
+      recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = "es-ES";
 
@@ -285,15 +285,15 @@
             let phrase = e.results[i][0].transcript.trim();
             let currentTime = new Date().getTime();
             // Evitar duplicados si el mismo fragmento se detecta en menos de 1 segundo
-            if(phrase && phrase === lastFinal && (currentTime - prevFinalTime) < 1000) {
+            if(phrase && phrase === lastFinal && (currentTime - prevFinalTime) < 1000){
               continue;
             }
             // Validación extra: si la última frase registrada es igual, se omite
-            if(transcriptHistory.length > 0 && transcriptHistory[transcriptHistory.length - 1] === phrase) {
+            if(transcriptHistory.length > 0 && transcriptHistory[transcriptHistory.length - 1] === phrase){
               continue;
             }
             // Insertar salto de línea si hay una pausa prolongada (>2s)
-            if(prevFinalTime !== 0 && (currentTime - prevFinalTime) > 2000) {
+            if(prevFinalTime !== 0 && (currentTime - prevFinalTime) > 2000){
               transcriptionES.innerHTML += "<br>";
               finalTranscriptES += "\n";
             }
@@ -322,19 +322,19 @@
         logError("[Voice Error] " + event.error);
       };
 
-      // Al terminar de hablar, detener el reconocimiento y reactivar el botón de iniciar
-      recognition.onspeechend = function(){
-        recognition.stop();
-      };
-
+      // En modo continuo, si por alguna razón el reconocimiento se detiene,
+      // se reactivará automáticamente después de un breve retardo.
       recognition.onend = function(){
-        isRecording = false;
-        startBtn.disabled = false;
-        stopBtn.disabled = true;
-        micIndicator.style.display = "none";
-        exportTxt.disabled = false;
-        exportJson.disabled = false;
-        highlightBtn.disabled = false;
+        if(isRecording){
+          setTimeout(()=>{ recognition.start(); }, 500);
+        } else {
+          startBtn.disabled = false;
+          stopBtn.disabled = true;
+          micIndicator.style.display = "none";
+          exportTxt.disabled = false;
+          exportJson.disabled = false;
+          highlightBtn.disabled = false;
+        }
       };
 
     } else {
@@ -380,7 +380,7 @@
       highlightBtn.disabled = false;
     });
 
-    // Botón de reinicio (reset) con una sola confirmación
+    // Botón de reinicio (reset) con confirmación
     resetBtn.addEventListener("click", ()=>{
       if(!confirm("¿Seguro que deseas borrar todo?")) return;
       finalTranscriptES = "";
@@ -440,7 +440,7 @@
 
     async function retranslateAll(){
       const plainAll = transcriptionES.innerText.trim();
-      if(!plainAll) {
+      if(!plainAll){
         transcriptionEN.value = "";
         return;
       }
@@ -493,7 +493,7 @@
 
     exportJson.addEventListener("click", ()=>{
       const data = {
-        voice:{
+        voice: {
           es: transcriptionES.innerText,
           en: transcriptionEN.value,
           summary: summaryArea.value,
