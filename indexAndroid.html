@@ -147,6 +147,12 @@
   </div>
 
   <script>
+    // Aseguramos la compatibilidad con SpeechRecognition
+    window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!window.SpeechRecognition) {
+      alert("Este navegador no soporta el reconocimiento de voz. Usa Chrome en HTTPS para Android o PC.");
+    }
+
     /*******************************************************
      * 1) UTILIDADES
      *******************************************************/
@@ -244,15 +250,14 @@
     }
 
     /*******************************************************
-     * 3) LÓGICA PRINCIPAL DE RECONOCIMIENTO DE VOZ
+     * 3) RECONOCIMIENTO DE VOZ
      *******************************************************/
-    let recognition = null;
+    let recognition = new SpeechRecognition();
     let isRecording = false;
     let finalTranscriptES = "";
     let transcriptHistory = [];
     let redoStack = [];
 
-    // Variables para evitar duplicados y detectar pausas prolongadas
     let lastFinal = "";
     let prevFinalTime = 0;
 
@@ -270,80 +275,80 @@
     const exportTxt = document.getElementById("exportTxt");
     const exportJson = document.getElementById("exportJson");
 
-    if ("webkitSpeechRecognition" in window) {
-      recognition = new webkitSpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = "es-ES";
+    // Configuración para grabación continua
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "es-ES";
 
-      recognition.onresult = async function(e) {
-        let interimTranscript = "";
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          if (e.results[i].isFinal) {
-            let phrase = e.results[i][0].transcript.trim();
-            let currentTime = new Date().getTime();
-            // Evitar duplicados si el mismo fragmento se detecta en menos de 1 segundo
-            if (phrase && phrase === lastFinal && (currentTime - prevFinalTime) < 1000) {
-              continue;
-            }
-            // Validación extra: si la última frase registrada es igual, se omite
-            if (transcriptHistory.length > 0 && transcriptHistory[transcriptHistory.length - 1] === phrase) {
-              continue;
-            }
-            // Insertar salto de línea si hay una pausa prolongada (>2s)
-            if (prevFinalTime !== 0 && (currentTime - prevFinalTime) > 2000) {
-              transcriptionES.innerHTML += "<br>";
-              finalTranscriptES += "\n";
-            }
-            lastFinal = phrase;
-            prevFinalTime = currentTime;
-            transcriptHistory.push(phrase);
-            redoStack = [];
-            updateUndoRedoButtons();
+    recognition.onstart = function() {
+      logInfo("Reconocimiento iniciado");
+    };
 
-            finalTranscriptES += phrase + " ";
-            transcriptionES.innerHTML += phrase + " ";
-            try {
-              const plainAll = transcriptionES.innerText.trim();
-              const translated = await translateTextWithWorker(plainAll, "es", "en");
-              transcriptionEN.value = translated;
-            } catch (err) {
-              logError("[Translation Error] " + err.message);
-            }
-          } else {
-            interimTranscript += e.results[i][0].transcript;
+    recognition.onresult = async function(e) {
+      let interimTranscript = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          let phrase = e.results[i][0].transcript.trim();
+          let currentTime = new Date().getTime();
+          if (phrase && phrase === lastFinal && (currentTime - prevFinalTime) < 1000) continue;
+          if (transcriptHistory.length > 0 && transcriptHistory[transcriptHistory.length - 1] === phrase) continue;
+          if (prevFinalTime !== 0 && (currentTime - prevFinalTime) > 2000) {
+            transcriptionES.innerHTML += "<br>";
+            finalTranscriptES += "\n";
           }
+          lastFinal = phrase;
+          prevFinalTime = currentTime;
+          transcriptHistory.push(phrase);
+          redoStack = [];
+          updateUndoRedoButtons();
+
+          finalTranscriptES += phrase + " ";
+          transcriptionES.innerHTML += phrase + " ";
+          try {
+            const plainAll = transcriptionES.innerText.trim();
+            const translated = await translateTextWithWorker(plainAll, "es", "en");
+            transcriptionEN.value = translated;
+          } catch (err) {
+            logError("[Translation Error] " + err.message);
+          }
+        } else {
+          interimTranscript += e.results[i][0].transcript;
         }
-      };
+      }
+    };
 
-      recognition.onerror = function(event) {
-        logError("[Voice Error] " + event.error);
-      };
+    recognition.onerror = function(event) {
+      logError("[Voice Error] " + event.error);
+    };
 
-      recognition.onend = function() {
-        if (isRecording) {
-          recognition.start();
-        }
-      };
-
-    } else {
-      alert("Este navegador no soporta webkitSpeechRecognition. Usa Chrome en HTTPS para Android o PC.");
-    }
+    // En modo continuo, si se detiene por error, reiniciamos
+    recognition.onend = function() {
+      logInfo("Reconocimiento terminado");
+      if (isRecording) {
+        logInfo("Reiniciando reconocimiento...");
+        setTimeout(() => { recognition.start(); }, 500);
+      } else {
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        micIndicator.style.display = "none";
+        exportTxt.disabled = false;
+        exportJson.disabled = false;
+        highlightBtn.disabled = false;
+      }
+    };
 
     /*******************************************************
-     * 4) LÓGICA DE BOTONES
+     * 4) BOTONES
      *******************************************************/
     startBtn.addEventListener("click", async () => {
       if (!recognition) return;
       await showCountdown(3);
-      
       finalTranscriptES = "";
       lastFinal = "";
       prevFinalTime = 0;
       transcriptHistory = [];
       redoStack = [];
       updateUndoRedoButtons();
-
       recognition.start();
       isRecording = true;
       startBtn.disabled = true;
@@ -351,7 +356,6 @@
       resetBtn.disabled = false;
       minutaBtn.disabled = false;
       micIndicator.style.display = "inline-block";
-
       exportTxt.disabled = true;
       exportJson.disabled = true;
       highlightBtn.disabled = true;
