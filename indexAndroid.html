@@ -155,7 +155,6 @@
         oscillator.start();
         setTimeout(() => {
           oscillator.stop();
-          // Cerrar el contexto para liberar recursos
           context.close();
         }, 200);
       } catch (e) {
@@ -267,6 +266,7 @@
     let finalTranscriptES = "";
     let transcriptHistory = [];
     let redoStack = [];
+    let recordingTimeout = null;  // Para detener automáticamente tras 10 minutos
 
     // Variables para evitar duplicados y detectar pausas prolongadas
     let lastFinal = "";
@@ -303,30 +303,30 @@
           let currentTime = new Date().getTime();
           let normalizedPhrase = phrase.toLowerCase();
           
-          // Verificar si finalTranscriptES ya termina con esa secuencia
+          // Evitar duplicados: si finalTranscriptES ya termina con esa secuencia
           if (finalTranscriptES.trim().toLowerCase().endsWith(normalizedPhrase)) {
             console.log("Duplicado detectado (finalTranscriptES):", phrase);
             continue;
           }
-          // Verificar con el último elemento del historial
+          // Evitar duplicados: si el último elemento del historial es igual
           if (transcriptHistory.length > 0 &&
               transcriptHistory[transcriptHistory.length - 1].trim().toLowerCase() === normalizedPhrase) {
             console.log("Duplicado detectado (historial):", phrase);
             continue;
           }
-          // Opcional: si se detecta que el mismo fragmento ocurre en menos de 1 segundo, se omite
+          // Opcional: evitar repetición en menos de 1 segundo
           if (phrase && lastFinal && normalizedPhrase === lastFinal.toLowerCase() &&
               (currentTime - prevFinalTime) < 1000) {
             continue;
           }
           
-          // Si hay una pausa prolongada (>2s), se inserta un salto de línea
+          // Insertar salto de línea si hay una pausa prolongada (>2s)
           if (prevFinalTime !== 0 && (currentTime - prevFinalTime) > 2000) {
             transcriptionES.innerHTML += "<br>";
             finalTranscriptES += "\n";
           }
           
-          // Aquí se agrega la nueva frase y se reproduce el beep
+          // Agregar la nueva frase, reproducir beep y actualizar
           lastFinal = phrase;
           prevFinalTime = currentTime;
           transcriptHistory.push(phrase);
@@ -335,7 +335,7 @@
           
           finalTranscriptES += phrase + " ";
           transcriptionES.innerHTML += phrase + " ";
-          playBeep();  // Reproduce el beep cada vez que se agrega una nueva frase
+          playBeep();  // Beep audible en cada nuevo fragmento
           
           try {
             const plainAll = transcriptionES.innerText.trim();
@@ -356,6 +356,7 @@
 
     recognition.onend = function() {
       logInfo("Reconocimiento terminado");
+      // Si aún se está grabando y no se ha alcanzado el límite, se reinicia automáticamente
       if (isRecording) {
         logInfo("Reiniciando reconocimiento...");
         setTimeout(() => { recognition.start(); }, 500);
@@ -391,6 +392,15 @@
       exportTxt.disabled = true;
       exportJson.disabled = true;
       highlightBtn.disabled = true;
+      // Programar la detención automática del micrófono después de 10 minutos (600000 ms)
+      recordingTimeout = setTimeout(() => {
+        if (isRecording) {
+          recognition.stop();
+          isRecording = false;
+          logInfo("Grabación detenida automáticamente tras 10 minutos.");
+          alert("La grabación se ha detenido automáticamente tras 10 minutos.");
+        }
+      }, 600000);
     });
 
     stopBtn.addEventListener("click", () => {
@@ -403,6 +413,11 @@
       exportTxt.disabled = false;
       exportJson.disabled = false;
       highlightBtn.disabled = false;
+      // Limpiar el temporizador si se detuvo manualmente
+      if (recordingTimeout) {
+        clearTimeout(recordingTimeout);
+        recordingTimeout = null;
+      }
     });
 
     resetBtn.addEventListener("click", () => {
