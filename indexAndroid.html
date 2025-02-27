@@ -14,16 +14,12 @@
       --color-border: #333;
       --color-white: #FFF;
     }
-    * {
-      box-sizing: border-box; margin:0; padding:0;
-    }
+    * { box-sizing: border-box; margin:0; padding:0; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: var(--color-bg);
       color: var(--color-text);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
+      display: flex; flex-direction: column; min-height: 100vh;
     }
     header {
       background: var(--color-purple);
@@ -42,9 +38,7 @@
       overflow:auto; padding:20px;
       max-width: 800px; margin:0 auto;
     }
-    .controls {
-      text-align:center; margin-bottom:10px;
-    }
+    .controls { text-align:center; margin-bottom:10px; }
     button {
       background: var(--color-purple-dark);
       color: var(--color-text);
@@ -56,9 +50,7 @@
       cursor:pointer;
       transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
     }
-    button:disabled {
-      background: #555; cursor:not-allowed; opacity:0.6;
-    }
+    button:disabled { background: #555; cursor:not-allowed; opacity:0.6; }
     button:hover:not(:disabled) {
       background: var(--color-purple);
       transform: translateY(-1px);
@@ -73,10 +65,7 @@
       animation: blink 1s infinite;
       vertical-align:middle;
     }
-    @keyframes blink {
-      0%,100% {opacity:1;}
-      50% {opacity:0;}
-    }
+    @keyframes blink { 0%,100% {opacity:1;} 50% {opacity:0;} }
     label {
       color: var(--color-accent);
       font-weight:bold;
@@ -151,6 +140,27 @@
     window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!window.SpeechRecognition) {
       alert("Este navegador no soporta el reconocimiento de voz. Usa Chrome en HTTPS para Android o PC.");
+    }
+
+    /*******************************************************
+     * Función para reproducir beep usando Web Audio API
+     *******************************************************/
+    function playBeep() {
+      try {
+        const context = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = context.createOscillator();
+        oscillator.type = "sine";
+        oscillator.frequency.value = 440; // Frecuencia A4
+        oscillator.connect(context.destination);
+        oscillator.start();
+        setTimeout(() => {
+          oscillator.stop();
+          // Cerrar el contexto para liberar recursos
+          context.close();
+        }, 200);
+      } catch (e) {
+        console.error("Error al reproducir beep:", e);
+      }
     }
 
     /*******************************************************
@@ -293,18 +303,18 @@
           let currentTime = new Date().getTime();
           let normalizedPhrase = phrase.toLowerCase();
           
-          // Verificar si el texto final ya termina con la misma secuencia
+          // Verificar si finalTranscriptES ya termina con esa secuencia
           if (finalTranscriptES.trim().toLowerCase().endsWith(normalizedPhrase)) {
-            console.log("Detectado duplicado en finalTranscript:", phrase);
+            console.log("Duplicado detectado (finalTranscriptES):", phrase);
             continue;
           }
           // Verificar con el último elemento del historial
           if (transcriptHistory.length > 0 &&
               transcriptHistory[transcriptHistory.length - 1].trim().toLowerCase() === normalizedPhrase) {
-            console.log("Detectado duplicado en transcriptHistory:", phrase);
+            console.log("Duplicado detectado (historial):", phrase);
             continue;
           }
-          // (Opcional) Si se detecta que el mismo fragmento ocurre en menos de 1 segundo, se omite
+          // Opcional: si se detecta que el mismo fragmento ocurre en menos de 1 segundo, se omite
           if (phrase && lastFinal && normalizedPhrase === lastFinal.toLowerCase() &&
               (currentTime - prevFinalTime) < 1000) {
             continue;
@@ -316,14 +326,17 @@
             finalTranscriptES += "\n";
           }
           
+          // Aquí se agrega la nueva frase y se reproduce el beep
           lastFinal = phrase;
           prevFinalTime = currentTime;
           transcriptHistory.push(phrase);
           redoStack = [];
           updateUndoRedoButtons();
-
+          
           finalTranscriptES += phrase + " ";
           transcriptionES.innerHTML += phrase + " ";
+          playBeep();  // Reproduce el beep cada vez que se agrega una nueva frase
+          
           try {
             const plainAll = transcriptionES.innerText.trim();
             const translated = await translateTextWithWorker(plainAll, "es", "en");
