@@ -153,24 +153,23 @@
     function logInfo(msg) { console.info("[INFO]", msg); }
     function logError(msg) { console.error("[ERROR]", msg); }
 
-    async function showCountdown(seconds){
-      return new Promise(resolve=>{
+    async function showCountdown(seconds) {
+      return new Promise(resolve => {
         const overlay = document.createElement("div");
-        overlay.className="countdown-overlay";
-        overlay.textContent=seconds;
+        overlay.className = "countdown-overlay";
+        overlay.textContent = seconds;
         document.body.appendChild(overlay);
-
         let current = seconds;
-        const interval = setInterval(()=>{
+        const interval = setInterval(() => {
           current--;
-          if(current>0){
-            overlay.textContent=current;
+          if (current > 0) {
+            overlay.textContent = current;
           } else {
             clearInterval(interval);
             document.body.removeChild(overlay);
             resolve();
           }
-        },1000);
+        }, 1000);
       });
     }
 
@@ -189,26 +188,26 @@
      *******************************************************/
     const workerCode = `
       const cache = {};
-      self.onmessage = async function(e){
-        const {type, text, sourceLang, targetLang, requestId} = e.data;
-        if(type === 'translate'){
+      self.onmessage = async function(e) {
+        const { type, text, sourceLang, targetLang, requestId } = e.data;
+        if (type === 'translate') {
           const key = text + '_' + sourceLang + '_' + targetLang;
-          if(cache[key]){
-            self.postMessage({requestId, translatedText: cache[key]});
+          if (cache[key]) {
+            self.postMessage({ requestId, translatedText: cache[key] });
             return;
           }
-          try{
+          try {
             const resp = await fetch('https://translate.argosopentech.com/translate', {
               method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({q: text, source: sourceLang, target: targetLang, format: 'text'})
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ q: text, source: sourceLang, target: targetLang, format: 'text' })
             });
-            if(!resp.ok) throw new Error('HTTP ' + resp.status);
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
             const data = await resp.json();
             cache[key] = data.translatedText;
-            self.postMessage({requestId, translatedText: data.translatedText});
-          } catch(err){
-            self.postMessage({requestId, error: err.message});
+            self.postMessage({ requestId, translatedText: data.translatedText });
+          } catch (err) {
+            self.postMessage({ requestId, error: err.message });
           }
         }
       }
@@ -221,9 +220,9 @@
     const pendingRequests = {};
 
     translationWorker.onmessage = (e) => {
-      const {requestId, translatedText, error} = e.data;
-      if(pendingRequests[requestId]){
-        if(error){
+      const { requestId, translatedText, error } = e.data;
+      if (pendingRequests[requestId]) {
+        if (error) {
           pendingRequests[requestId].reject(new Error(error));
         } else {
           pendingRequests[requestId].resolve(translatedText);
@@ -232,10 +231,10 @@
       }
     };
 
-    function translateTextWithWorker(text, sourceLang, targetLang){
+    function translateTextWithWorker(text, sourceLang, targetLang) {
       return new Promise((resolve, reject) => {
         const requestId = ++requestCounter;
-        pendingRequests[requestId] = {resolve, reject};
+        pendingRequests[requestId] = { resolve, reject };
         translationWorker.postMessage({
           type: 'translate',
           text, sourceLang, targetLang,
@@ -271,29 +270,28 @@
     const exportTxt = document.getElementById("exportTxt");
     const exportJson = document.getElementById("exportJson");
 
-    if("webkitSpeechRecognition" in window){
+    if ("webkitSpeechRecognition" in window) {
       recognition = new webkitSpeechRecognition();
-      // Se activa el modo continuo para que la grabación sea ininterrumpida
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = "es-ES";
 
-      recognition.onresult = async function(e){
+      recognition.onresult = async function(e) {
         let interimTranscript = "";
-        for(let i = e.resultIndex; i < e.results.length; i++){
-          if(e.results[i].isFinal){
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) {
             let phrase = e.results[i][0].transcript.trim();
             let currentTime = new Date().getTime();
             // Evitar duplicados si el mismo fragmento se detecta en menos de 1 segundo
-            if(phrase && phrase === lastFinal && (currentTime - prevFinalTime) < 1000){
+            if (phrase && phrase === lastFinal && (currentTime - prevFinalTime) < 1000) {
               continue;
             }
             // Validación extra: si la última frase registrada es igual, se omite
-            if(transcriptHistory.length > 0 && transcriptHistory[transcriptHistory.length - 1] === phrase){
+            if (transcriptHistory.length > 0 && transcriptHistory[transcriptHistory.length - 1] === phrase) {
               continue;
             }
             // Insertar salto de línea si hay una pausa prolongada (>2s)
-            if(prevFinalTime !== 0 && (currentTime - prevFinalTime) > 2000){
+            if (prevFinalTime !== 0 && (currentTime - prevFinalTime) > 2000) {
               transcriptionES.innerHTML += "<br>";
               finalTranscriptES += "\n";
             }
@@ -305,11 +303,11 @@
 
             finalTranscriptES += phrase + " ";
             transcriptionES.innerHTML += phrase + " ";
-            try{
+            try {
               const plainAll = transcriptionES.innerText.trim();
               const translated = await translateTextWithWorker(plainAll, "es", "en");
               transcriptionEN.value = translated;
-            } catch(err){
+            } catch (err) {
               logError("[Translation Error] " + err.message);
             }
           } else {
@@ -318,34 +316,25 @@
         }
       };
 
-      recognition.onerror = function(event){
+      recognition.onerror = function(event) {
         logError("[Voice Error] " + event.error);
       };
 
-      // En modo continuo, si por alguna razón el reconocimiento se detiene,
-      // se reactivará automáticamente después de un breve retardo.
-      recognition.onend = function(){
-        if(isRecording){
-          setTimeout(()=>{ recognition.start(); }, 500);
-        } else {
-          startBtn.disabled = false;
-          stopBtn.disabled = true;
-          micIndicator.style.display = "none";
-          exportTxt.disabled = false;
-          exportJson.disabled = false;
-          highlightBtn.disabled = false;
+      recognition.onend = function() {
+        if (isRecording) {
+          recognition.start();
         }
       };
 
     } else {
-      alert("Este navegador no soporta webkitSpeechRecognition.\nUsa Chrome en HTTPS para Android o PC.");
+      alert("Este navegador no soporta webkitSpeechRecognition. Usa Chrome en HTTPS para Android o PC.");
     }
 
     /*******************************************************
      * 4) LÓGICA DE BOTONES
      *******************************************************/
-    startBtn.addEventListener("click", async()=>{
-      if(!recognition) return;
+    startBtn.addEventListener("click", async () => {
+      if (!recognition) return;
       await showCountdown(3);
       
       finalTranscriptES = "";
@@ -368,8 +357,8 @@
       highlightBtn.disabled = true;
     });
 
-    stopBtn.addEventListener("click", ()=>{
-      if(!recognition || !isRecording) return;
+    stopBtn.addEventListener("click", () => {
+      if (!recognition || !isRecording) return;
       isRecording = false;
       recognition.stop();
       micIndicator.style.display = "none";
@@ -380,9 +369,8 @@
       highlightBtn.disabled = false;
     });
 
-    // Botón de reinicio (reset) con confirmación
-    resetBtn.addEventListener("click", ()=>{
-      if(!confirm("¿Seguro que deseas borrar todo?")) return;
+    resetBtn.addEventListener("click", () => {
+      if (!confirm("¿Seguro que deseas borrar todo?")) return;
       finalTranscriptES = "";
       transcriptHistory = [];
       redoStack = [];
@@ -394,10 +382,9 @@
       updateUndoRedoButtons();
     });
 
-    // Botón "Reunudar Minuta" con doble confirmación
-    minutaBtn.addEventListener("click", ()=>{
-      if(!confirm("¿Seguro que deseas borrar todo?")) return;
-      if(!confirm("Esta acción borrará todo, ¿estás completamente seguro?")) return;
+    minutaBtn.addEventListener("click", () => {
+      if (!confirm("¿Seguro que deseas borrar todo?")) return;
+      if (!confirm("Esta acción borrará todo, ¿estás completamente seguro?")) return;
       finalTranscriptES = "";
       transcriptHistory = [];
       redoStack = [];
@@ -409,8 +396,8 @@
       updateUndoRedoButtons();
     });
 
-    undoBtn.addEventListener("click", ()=>{
-      if(transcriptHistory.length < 1) return;
+    undoBtn.addEventListener("click", () => {
+      if (transcriptHistory.length < 1) return;
       const undone = transcriptHistory.pop();
       redoStack.push(undone);
       reconstructES();
@@ -418,8 +405,8 @@
       retranslateAll();
     });
 
-    redoBtn.addEventListener("click", ()=>{
-      if(redoStack.length < 1) return;
+    redoBtn.addEventListener("click", () => {
+      if (redoStack.length < 1) return;
       const phrase = redoStack.pop();
       transcriptHistory.push(phrase);
       reconstructES();
@@ -427,38 +414,38 @@
       retranslateAll();
     });
 
-    function reconstructES(){
+    function reconstructES() {
       let joined = transcriptHistory.join(" ") + " ";
       finalTranscriptES = joined;
       transcriptionES.innerHTML = joined;
     }
 
-    function updateUndoRedoButtons(){
+    function updateUndoRedoButtons() {
       undoBtn.disabled = (transcriptHistory.length < 1);
       redoBtn.disabled = (redoStack.length < 1);
     }
 
-    async function retranslateAll(){
+    async function retranslateAll() {
       const plainAll = transcriptionES.innerText.trim();
-      if(!plainAll){
+      if (!plainAll) {
         transcriptionEN.value = "";
         return;
       }
-      try{
+      try {
         const translated = await translateTextWithWorker(plainAll, "es", "en");
         transcriptionEN.value = translated;
-      } catch(e){
+      } catch (e) {
         logError("[Retranslate] " + e.message);
       }
     }
 
-    highlightBtn.addEventListener("click", ()=>{
+    highlightBtn.addEventListener("click", () => {
       const sel = window.getSelection();
-      if(sel.rangeCount){
-        for(let i = 0; i < sel.rangeCount; i++){
+      if (sel.rangeCount) {
+        for (let i = 0; i < sel.rangeCount; i++) {
           const range = sel.getRangeAt(i).cloneRange();
           const text = range.toString();
-          if(text.trim()){
+          if (text.trim()) {
             const span = document.createElement("span");
             span.style.backgroundColor = "var(--color-accent)";
             span.style.color = "#000";
@@ -470,20 +457,20 @@
       }
     });
 
-    function updateSummary(){
+    function updateSummary() {
       const spans = transcriptionES.querySelectorAll('span[style*="background-color"]');
       let lines = [];
-      spans.forEach(s=>{
+      spans.forEach(s => {
         lines.push(s.innerText.trim());
       });
       summaryArea.value = lines.join("\n");
     }
 
-    exportTxt.addEventListener("click", ()=>{
+    exportTxt.addEventListener("click", () => {
       const es = transcriptionES.innerText;
       const en = transcriptionEN.value;
       const summary = summaryArea.value;
-      if(!es && !en && !summary){
+      if (!es && !en && !summary) {
         alert("No hay datos para exportar.");
         return;
       }
@@ -491,7 +478,7 @@
       downloadFile("transcripcion_voz.txt", combined, "text/plain");
     });
 
-    exportJson.addEventListener("click", ()=>{
+    exportJson.addEventListener("click", () => {
       const data = {
         voice: {
           es: transcriptionES.innerText,
@@ -503,7 +490,6 @@
       };
       downloadFile("transcripcion_voz.json", JSON.stringify(data, null, 2), "application/json");
     });
-
   </script>
 </body>
 </html>
