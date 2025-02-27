@@ -291,19 +291,31 @@
         if (e.results[i].isFinal) {
           let phrase = e.results[i][0].transcript.trim();
           let currentTime = new Date().getTime();
-          // Comprobación insensible a mayúsculas/minúsculas con la última frase reconocida
-          if (phrase && lastFinal && phrase.toLowerCase() === lastFinal.toLowerCase() && (currentTime - prevFinalTime) < 1000) {
+          let normalizedPhrase = phrase.toLowerCase();
+          
+          // Verificar si el texto final ya termina con la misma secuencia
+          if (finalTranscriptES.trim().toLowerCase().endsWith(normalizedPhrase)) {
+            console.log("Detectado duplicado en finalTranscript:", phrase);
             continue;
           }
-          // Si el último elemento del historial es igual (insensible a mayúsculas/minúsculas), se omite
-          if (transcriptHistory.length > 0 && transcriptHistory[transcriptHistory.length - 1].toLowerCase() === phrase.toLowerCase()) {
+          // Verificar con el último elemento del historial
+          if (transcriptHistory.length > 0 &&
+              transcriptHistory[transcriptHistory.length - 1].trim().toLowerCase() === normalizedPhrase) {
+            console.log("Detectado duplicado en transcriptHistory:", phrase);
             continue;
           }
-          // Insertar salto de línea si hay una pausa prolongada (>2s)
+          // (Opcional) Si se detecta que el mismo fragmento ocurre en menos de 1 segundo, se omite
+          if (phrase && lastFinal && normalizedPhrase === lastFinal.toLowerCase() &&
+              (currentTime - prevFinalTime) < 1000) {
+            continue;
+          }
+          
+          // Si hay una pausa prolongada (>2s), se inserta un salto de línea
           if (prevFinalTime !== 0 && (currentTime - prevFinalTime) > 2000) {
             transcriptionES.innerHTML += "<br>";
             finalTranscriptES += "\n";
           }
+          
           lastFinal = phrase;
           prevFinalTime = currentTime;
           transcriptHistory.push(phrase);
