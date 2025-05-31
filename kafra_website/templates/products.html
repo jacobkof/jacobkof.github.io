@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAFRA - Products</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo"><a href="../index.html" style="color:white; text-decoration:none;">KAFRA</a></h1>
+            <nav>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="products.html" class="active">Products</a></li>
+                    <li><a href="cart.html">Cart</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                    <li><a href="profile.html">My Profile</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Our Vegetable Selection</h1>
+            <p><a href="../index.html" class="button button-secondary mb-1">Back to Home</a></p>
+
+            <section class="search-and-filters mb-1">
+                <h2>Search & Filter</h2>
+                <form action="#" method="get">
+                    <div>
+                        <input type="search" name="search_query" placeholder="Search for vegetables...">
+                        <button type="submit">Search</button>
+                    </div>
+                    <div class="product-filters">
+                        <div>
+                            <label for="filter_category">Filter by Category:</label>
+                            <select name="filter_category" id="filter_category">
+                                <option value="">All Categories</option>
+                                <option value="leafy">Leafy Greens</option>
+                                <option value="root">Root Vegetables</option>
+                                <option value="cruciferous">Cruciferous</option>
+                                {/* More options will be added dynamically later */}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="sort_by">Sort by:</label>
+                            <select name="sort_by" id="sort_by">
+                                <option value="name_asc">Name (A-Z)</option>
+                                <option value="name_desc">Name (Z-A)</option>
+                                <option value="price_asc">Price (Low to High)</option>
+                                <option value="price_desc">Price (High to Low)</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <section class="product-grid">
+                <h2>Products</h2>
+                <div id="product_listing_area" class="product-listing-area">
+                    {/* This is a sample product card. This structure will be repeated for each product by JavaScript later. */}
+                    <div class="product-card">
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACWAQMAAAAGz+OhAAAAA1BMVEUmRcm+rLwPAAAAEElEQVR42mNkYGD4T8SMKAQBDQCF1wN/N2G8XAAAAABJRU5ErkJggg==" alt="Vegetable Name" >
+                        <h3>Sample Vegetable</h3>
+                        <p class="price">$2.99</p>
+                        <p>Short description or category here.</p>
+                        <div>
+                            <a href="product_detail.html" class="button">View Details</a>
+                            <button class="button add-to-cart-button button-secondary">Add to Cart</button>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACWAQMAAAAGz+OhAAAAA1BMVEUmRcm+rLwPAAAAEElEQVR42mNkYGD4T8SMKAQBDQCF1wN/N2G8XAAAAABJRU5ErkJggg==" alt="Another Vegetable">
+                        <h3>Another Veggie</h3>
+                        <p class="price">$1.50</p>
+                        <p>Fresh and green.</p>
+                        <div>
+                            <a href="product_detail.html" class="button">View Details</a>
+                            <button class="button add-to-cart-button button-secondary">Add to Cart</button>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACWAQMAAAAGz+OhAAAAA1BMVEUmRcm+rLwPAAAAEElEQVR42mNkYGD4T8SMKAQBDQCF1wN/N2G8XAAAAABJRU5ErkJggg==" alt="Third Vegetable">
+                        <h3>Third Veggie</h3>
+                        <p class="price">$3.25</p>
+                        <p>Organic and tasty.</p>
+                        <div>
+                            <a href="product_detail.html" class="button">View Details</a>
+                            <button class="button add-to-cart-button button-secondary">Add to Cart</button>
+                        </div>
+                    </div>
+                    {/* Product cards will be dynamically populated here */}
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 KAFRA Vegetable Shop. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../js/script.js"></script>
+</body>
+</html>
