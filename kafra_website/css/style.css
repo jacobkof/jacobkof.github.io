@@ -1,0 +1,295 @@
+/* Global Styles */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+h1, h2, h3, p, ul {
+    margin: 0 0 1em 0; /* Default bottom margin */
+    padding: 0;
+}
+
+ul {
+    list-style: none;
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+    overflow: auto; /* Clear floats */
+    padding: 0 20px;
+    background-color: #fff; /* White background for content area */
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* Header and Navigation Styling */
+header {
+    background: #333;
+    color: #fff;
+    padding: 1rem 0;
+    border-bottom: #007bff 3px solid;
+}
+
+header .container { /* Apply container to header content */
+    background-color: transparent; /* Header container shouldn't have its own white bg */
+    box-shadow: none;
+}
+
+
+header h1.logo { /* For a potential text logo */
+    margin: 0;
+    float: left;
+}
+
+header nav {
+    float: right;
+}
+
+header nav ul {
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+header nav ul li {
+    margin-left: 20px;
+}
+
+header nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+header nav ul li a:hover, header nav ul li a.active {
+    background-color: #007bff;
+}
+
+/* Main content styling */
+main {
+    padding: 20px 0;
+}
+
+/* Product Card Styling */
+.product-listing-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px 0; /* Add padding around the product area */
+}
+
+.product-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 20px; /* if not using gap */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    width: calc(33.333% - 20px); /* Example for 3 cards per row, adjust as needed */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.product-card img {
+    width: 100%;
+    max-height: 200px; /* Control image height */
+    object-fit: cover; /* Prevents distortion */
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+    border-radius: 3px 3px 0 0;
+}
+
+.product-card h3 {
+    font-size: 1.2em;
+    margin-bottom: 0.5em;
+}
+
+.product-card p {
+    font-size: 0.9em;
+    margin-bottom: 0.5em;
+}
+
+.product-card .price {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #e8491d;
+    margin-bottom: 1em;
+}
+
+/* Form Styling */
+form div {
+    margin-bottom: 15px;
+}
+
+form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+form input[type="text"],
+form input[type="email"],
+form input[type="password"],
+form input[type="number"],
+form input[type="tel"],
+form input[type="search"],
+form textarea,
+form select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box; /* Important for width 100% */
+}
+
+form textarea {
+    min-height: 80px;
+}
+
+/* Button Styling */
+.button, button, input[type="submit"] {
+    display: inline-block;
+    background: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover, button:hover, input[type="submit"]:hover {
+    background: #0056b3;
+}
+
+.button-secondary {
+    background: #6c757d;
+}
+.button-secondary:hover {
+    background: #545b62;
+}
+
+.button-danger {
+    background: #dc3545;
+}
+.button-danger:hover {
+    background: #c82333;
+}
+
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+}
+
+table thead {
+    background-color: #333;
+    color: #fff;
+}
+
+table th, table td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Utility Classes */
+.text-center {
+    text-align: center;
+}
+
+.mt-1 { margin-top: 1rem; }
+.mb-1 { margin-bottom: 1rem; }
+.p-1 { padding: 1rem; }
+.bg-light { background-color: #f8f9fa; }
+
+
+/* Admin Specific Navigation (example) */
+.admin-nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+.admin-nav ul li {
+    margin-bottom: 10px;
+}
+.admin-nav ul li a {
+    text-decoration: none;
+    background-color: #e9ecef;
+    padding: 10px 15px;
+    display: block;
+    border: 1px solid #ced4da;
+    color: #495057;
+    border-radius: 5px;
+}
+.admin-nav ul li a:hover {
+    background-color: #dee2e6;
+    border-color: #adb5bd;
+}
+
+/* Cart & Checkout specific styles */
+.cart-container, .checkout-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* More semantic than margin for flex items */
+}
+
+.cart-items, .checkout-form {
+    flex: 2; /* Takes more space */
+    min-width: 300px; /* Ensures readability on smaller flex views */
+}
+
+.cart-summary, .order-summary-checkout {
+    flex: 1; /* Takes less space */
+    min-width: 250px;
+    border: 1px solid #ddd;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    height: fit-content;
+}
+
+.cart-summary h2, .order-summary-checkout h2 {
+    margin-top: 0;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+/* Footer styling (basic example) */
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 30px;
+    background: #333;
+    color: #fff;
+}

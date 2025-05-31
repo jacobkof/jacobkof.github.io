@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAFRA - Checkout</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo"><a href="../index.html" style="color:white; text-decoration:none;">KAFRA</a></h1>
+            <nav>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="cart.html">Cart</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                    <li><a href="profile.html">My Profile</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Checkout</h1>
+            <p><a href="../index.html" class="button button-secondary mb-1">Back to Home</a>
+               <a href="cart.html" class="button button-secondary mb-1" style="margin-left: 10px;">Back to Cart</a></p>
+
+            <div class="checkout-container">
+                <section class="checkout-form">
+                    <form action="#" method="post" id="checkoutForm">
+                        <h2>Shipping Information</h2>
+                        <div>
+                            <label for="full_name">Full Name:</label>
+                            <input type="text" id="full_name" name="full_name" required>
+                        </div>
+                        <div>
+                            <label for="address1">Address Line 1:</label>
+                            <input type="text" id="address1" name="address1" required>
+                        </div>
+                        <div>
+                            <label for="address2">Address Line 2:</label>
+                            <input type="text" id="address2" name="address2">
+                        </div>
+                        <div>
+                            <label for="city">City:</label>
+                            <input type="text" id="city" name="city" required>
+                        </div>
+                        <div>
+                            <label for="state">State/Province:</label>
+                            <input type="text" id="state" name="state" required>
+                        </div>
+                        <div>
+                            <label for="postal_code">Postal Code:</label>
+                            <input type="text" id="postal_code" name="postal_code" required>
+                        </div>
+                        <div>
+                            <label for="country">Country:</label>
+                            <input type="text" id="country" name="country" required>
+                        </div>
+                        <div>
+                            <label for="phone">Phone Number:</label>
+                            <input type="tel" id="phone" name="phone">
+                        </div>
+
+                        <section class="payment-info mt-1">
+                            <h2>Payment Information</h2>
+                            <p>Payment gateway integration will be here. For now, no payment is processed.</p>
+                            {/* Actual payment fields would go here later */}
+                        </section>
+
+                        <div>
+                            <button type="submit" class="button mt-1" style="width:100%;">Place Order</button>
+                        </div>
+                    </form>
+                </section>
+
+                <aside class="order-summary-checkout">
+                    <h2>Order Summary</h2>
+                    <div>
+                        <p>Item 1 (Sample Vegetable 1) x 2 - $5.98</p>
+                        <p>Item 2 (Sample Vegetable 2) x 1 - $1.50</p>
+                        <hr>
+                        <p>Subtotal: $7.48</p>
+                        <p>Shipping: $5.00 (Example)</p>
+                        <hr>
+                        <p><strong>Total: $12.48</strong></p>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 KAFRA Vegetable Shop. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../js/script.js"></script>
+</body>
+</html>

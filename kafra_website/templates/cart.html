@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAFRA - Shopping Cart</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo"><a href="../index.html" style="color:white; text-decoration:none;">KAFRA</a></h1>
+            <nav>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="cart.html" class="active">Cart</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                    <li><a href="profile.html">My Profile</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Your Shopping Cart</h1>
+            <p><a href="../index.html" class="button button-secondary mb-1">Back to Home</a>
+               <a href="products.html" class="button button-secondary mb-1" style="margin-left: 10px;">Continue Shopping</a></p>
+
+            <div class="cart-container">
+                <section class="cart-items">
+                    <h2>Items in Your Cart</h2>
+                    {/* Conditional message: <p>Your cart is currently empty.</p> */}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Sample Vegetable 1 (e.g., Carrots)</td>
+                                <td>$2.99</td>
+                                <td><input type="number" value="2" min="1" name="item_quantity_1"></td>
+                                <td>$5.98</td>
+                                <td><button class="button button-danger">Remove</button></td>
+                            </tr>
+                            <tr>
+                                <td>Sample Vegetable 2 (e.g., Broccoli)</td>
+                                <td>$1.50</td>
+                                <td><input type="number" value="1" min="1" name="item_quantity_2"></td>
+                                <td>$1.50</td>
+                                <td><button class="button button-danger">Remove</button></td>
+                            </tr>
+                            {/* More items will be dynamically added here */}
+                        </tbody>
+                    </table>
+                     {/* <p class="text-center mt-1">Your cart is currently empty.</p> */}
+                </section>
+
+                <aside class="cart-summary">
+                    <h2>Cart Summary</h2>
+                    <p>Subtotal: $7.48</p> {/* Example calculation based on sample items */}
+                    <p>Shipping: Calculated at checkout</p>
+                    <hr>
+                    <p><strong>Grand Total: $7.48</strong></p> {/* Example calculation */}
+                    <a href="checkout.html" class="button" style="width:100%;">Proceed to Checkout</a>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 KAFRA Vegetable Shop. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../js/script.js"></script>
+</body>
+</html>

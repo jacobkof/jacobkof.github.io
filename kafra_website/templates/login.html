@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAFRA - Login</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo"><a href="../index.html" style="color:white; text-decoration:none;">KAFRA</a></h1>
+            <nav>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="cart.html">Cart</a></li>
+                    <li><a href="login.html" class="active">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                    <li><a href="profile.html">My Profile</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container" style="max-width: 500px; margin-top: 20px; padding: 20px;">
+            <h1>User Login</h1>
+            <form action="#" method="post">
+                <div>
+                    <label for="login_identifier">Username or Email:</label>
+                    <input type="text" id="login_identifier" name="login_identifier" required>
+                </div>
+                <div>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div>
+                    <button type="submit" class="button" style="width:100%;">Login</button>
+                </div>
+            </form>
+            <p class="mt-1">Don't have an account? <a href="register.html">Register here</a></p>
+            <p><a href="../index.html">Back to Home</a></p>
+        </div>
+    </main>
+
+    <footer style="position: fixed; bottom: 0; width: 100%;">
+        <div class="container">
+            <p>&copy; 2023 KAFRA Vegetable Shop. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../js/script.js"></script>
+</body>
+</html>

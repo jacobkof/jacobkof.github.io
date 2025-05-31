@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAFRA - Admin: View Customers</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="bg-light p-1 mb-1">
+        <div class="container">
+            <h1>KAFRA Admin Panel</h1>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h2>View Customers</h2>
+            <p><a href="admin_dashboard.html" class="button button-secondary mb-1">Back to Admin Dashboard</a></p>
+
+            <section id="customer-list">
+                <h3>Registered Customers</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Customer ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Registration Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>USR001</td>
+                            <td>customer_jane</td>
+                            <td>jane.doe@example.com</td>
+                            <td>2023-10-26</td>
+                            <td>{/* <button class="button button-small">View Details</button> */}</td>
+                        </tr>
+                        <tr>
+                            <td>USR002</td>
+                            <td>john_baker</td>
+                            <td>john.b@example.com</td>
+                            <td>2023-11-05</td>
+                            <td>{/* <button class="button button-small">View Details</button> */}</td>
+                        </tr>
+                        {/* More customer rows will be added dynamically here */}
+                    </tbody>
+                </table>
+                <p>No customers found or data will be loaded here. (This message will be shown conditionally)</p>
+            </section>
+        </div>
+    </main>
+
+    <footer class="mt-1">
+        <div class="container">
+            <p>&copy; 2023 KAFRA Admin. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../js/script.js"></script>
+</body>
+</html>
